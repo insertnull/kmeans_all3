@@ -1,12 +1,11 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from metrics_utils import format
+from utils import format
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score, pairwise_distances
-
 
 # Load datasets
 movies = pd.read_csv('ml-latest-small/movies.csv')
@@ -70,27 +69,44 @@ pca_result = pca.fit_transform(user_genre_ratings_scaled)
 user_genre_ratings["PCA1"] = pca_result[:, 0]
 user_genre_ratings["PCA2"] = pca_result[:, 1]
 
-### --- PLOT SIDE-BY-SIDE PCA SCATTERPLOTS ---
-def plot_pca_clusters(data):
+### --- PLOT PCA SCATTERPLOTS WITH GENRE AXIS CONTRIBUTIONS ---
+def plot_pca_clusters(data, pca_model, feature_names):
+    # Get component loadings
+    components = pd.DataFrame(pca_model.components_, columns=feature_names, index=["PC1", "PC2"])
+
+    # Get top 5 contributing genres per PC
+    top_pc1 = components.loc["PC1"].abs().sort_values(ascending=False).head(5).index.tolist()
+    top_pc2 = components.loc["PC2"].abs().sort_values(ascending=False).head(5).index.tolist()
+
+    # Create axis labels
+    xlabel = f"{', '.join(top_pc1)}"
+    ylabel = f"{', '.join(top_pc2)}"
+
+    # Plot
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
     for cluster in sorted(data["Cluster_Original"].unique()):
         subset = data[data["Cluster_Original"] == cluster]
         axes[0].scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
     axes[0].set_title("Original K-Means (Euclidean)")
-    axes[0].set_xlabel("PCA 1")
-    axes[0].set_ylabel("PCA 2")
+    axes[0].set_xlabel(xlabel)
+    axes[0].set_ylabel(ylabel)
     axes[0].legend()
 
     for cluster in sorted(data["Cluster_Enhanced"].unique()):
         subset = data[data["Cluster_Enhanced"] == cluster]
         axes[1].scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
     axes[1].set_title("Enhanced K-Means (Canberra)")
-    axes[1].set_xlabel("PCA 1")
-    axes[1].set_ylabel("PCA 2")
+    axes[1].set_xlabel(xlabel)
+    axes[1].set_ylabel(ylabel)
     axes[1].legend()
 
     plt.tight_layout()
     plt.show()
 
-plot_pca_clusters(user_genre_ratings)
+    # Print full genre contributions
+    print("\nFull Genre Contributions to PCA Components:")
+    print(components.T.sort_values(by="PC1", ascending=False))
+
+# Plot with genre contributions in axis labels
+plot_pca_clusters(user_genre_ratings, pca, genres)
