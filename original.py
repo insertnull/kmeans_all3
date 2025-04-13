@@ -71,11 +71,11 @@ def pca_visualization_with_outliers(data_scaled, labels, outliers, title, featur
     reduced = pca.fit_transform(data_scaled)
 
     components = pd.DataFrame(pca.components_, columns=feature_names, index=['PC1', 'PC2'])
-    top_pc1 = components.loc['PC1'].abs().sort_values(ascending=False).head(3).index.tolist()
-    top_pc2 = components.loc['PC2'].abs().sort_values(ascending=False).head(3).index.tolist()
+    top_pc1 = components.loc['PC1'].abs().sort_values(ascending=False).head(5).index.tolist()
+    top_pc2 = components.loc['PC2'].abs().sort_values(ascending=False).head(5).index.tolist()
 
-    xlabel = f"PC1: {', '.join(top_pc1)}"
-    ylabel = f"PC2: {', '.join(top_pc2)}"
+    xlabel = f"{', '.join(top_pc1)}"
+    ylabel = f"{', '.join(top_pc2)}"
 
     plt.figure(figsize=(8, 6))
     for cluster in np.unique(labels):
