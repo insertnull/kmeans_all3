@@ -100,12 +100,12 @@ def pca_visualization_with_genres(data_scaled, labels, title, feature_names):
     components = pd.DataFrame(pca.components_, columns=feature_names, index=['PC1', 'PC2'])
 
     # Get top 3 contributing genres (by absolute value) for each principal component
-    top_pc1 = components.loc['PC1'].abs().sort_values(ascending=False).head(3).index.tolist()
-    top_pc2 = components.loc['PC2'].abs().sort_values(ascending=False).head(3).index.tolist()
+    top_pc1 = components.loc['PC1'].abs().sort_values(ascending=False).head(5).index.tolist()
+    top_pc2 = components.loc['PC2'].abs().sort_values(ascending=False).head(5).index.tolist()
 
     # Make custom axis labels using top contributing genres
-    xlabel = f"PC1: {', '.join(top_pc1)}"
-    ylabel = f"PC2: {', '.join(top_pc2)}"
+    xlabel = f"{', '.join(top_pc1)}"
+    ylabel = f"{', '.join(top_pc2)}"
 
     # Plot with PCA
     plt.figure(figsize=(8, 6))
