@@ -85,10 +85,13 @@ user_genre_ratings["Cluster_Enhanced"] = clusters_enhanced
 ### --- PCA FOR VISUALIZATION ---
 pca = PCA(n_components=2)
 pca_transformed = pca.fit_transform(user_genre_ratings_scaled)
-
-# Assign PCA coordinates for both clusterings
 user_genre_ratings["PCA1"] = pca_transformed[:, 0]
 user_genre_ratings["PCA2"] = pca_transformed[:, 1]
+
+# Get top contributing genres per component
+pca_components = pd.DataFrame(np.abs(pca.components_), columns=genres)
+top5_pca1 = pca_components.loc[0].sort_values(ascending=False).head(5).index.tolist()
+top5_pca2 = pca_components.loc[1].sort_values(ascending=False).head(5).index.tolist()
 
 ### --- PLOT SIDE-BY-SIDE SCATTERPLOTS ---
 def plot_side_by_side():
@@ -99,18 +102,18 @@ def plot_side_by_side():
     for cluster in sorted(user_genre_ratings["Cluster_Original"].unique()):
         subset = user_genre_ratings[user_genre_ratings["Cluster_Original"] == cluster]
         ax.scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
-    ax.set_xlabel('PCA 1')
-    ax.set_ylabel('PCA 2')
+    ax.set_xlabel(f'PCA 1: {", ".join(top5_pca1)}')
+    ax.set_ylabel(f'PCA 2: {", ".join(top5_pca2)}')
     ax.set_title('Original K-Means - PCA')
     ax.legend()
 
-    # Enhanced K-Means (Calinski-Harabasz optimal k) Scatterplot
+    # Enhanced K-Means Scatterplot
     ax = axes[1]
     for cluster in sorted(user_genre_ratings["Cluster_Enhanced"].unique()):
         subset = user_genre_ratings[user_genre_ratings["Cluster_Enhanced"] == cluster]
         ax.scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
-    ax.set_xlabel('PCA 1')
-    ax.set_ylabel('PCA 2')
+    ax.set_xlabel(f'PCA 1: {", ".join(top5_pca1)}')
+    ax.set_ylabel(f'PCA 2: {", ".join(top5_pca2)}')
     ax.set_title(f'Enhanced K-Means - PCA (k={best_k})')
     ax.legend()
 
