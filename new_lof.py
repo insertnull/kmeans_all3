@@ -36,8 +36,6 @@ user_genre_ratings_scaled = scaler.fit_transform(user_genre_ratings)
 ### --- ORIGINAL K-MEANS (EUCLIDEAN DISTANCE) ---
 kmeans_original = KMeans(n_clusters=5, random_state=42, n_init=10)
 clusters_original = kmeans_original.fit_predict(user_genre_ratings_scaled)
-
-# Store clusters back in the original DataFrame
 user_genre_ratings_original["Cluster_Original"] = clusters_original
 
 ### --- LOF OUTLIER REMOVAL ---
@@ -51,35 +49,53 @@ user_genre_ratings_filtered_scaled = scaler.fit_transform(user_genre_ratings_fil
 ### --- ENHANCED K-MEANS (ONLY LOF FOR ENHANCEMENT) ---
 kmeans_enhanced = KMeans(n_clusters=5, random_state=42, n_init=10)
 clusters_enhanced = kmeans_enhanced.fit_predict(user_genre_ratings_filtered_scaled)
-
-# Store clusters back in the filtered DataFrame
 user_genre_ratings_filtered["Cluster_Enhanced"] = clusters_enhanced
 
 ### --- PCA FOR VISUALIZATION ---
 pca = PCA(n_components=2)
 
 # Apply PCA on the original data (before LOF removal)
-pca_original = pca.fit_transform(user_genre_ratings_scaled)
+pca_original_model = pca.fit(user_genre_ratings_scaled)
+pca_original = pca_original_model.transform(user_genre_ratings_scaled)
 user_genre_ratings_original["PCA1"] = pca_original[:, 0]
 user_genre_ratings_original["PCA2"] = pca_original[:, 1]
 
 # Apply PCA on the filtered data (after LOF removal)
-pca_enhanced = pca.fit_transform(user_genre_ratings_filtered_scaled)
+pca_enhanced_model = pca.fit(user_genre_ratings_filtered_scaled)
+pca_enhanced = pca_enhanced_model.transform(user_genre_ratings_filtered_scaled)
 user_genre_ratings_filtered["PCA1"] = pca_enhanced[:, 0]
 user_genre_ratings_filtered["PCA2"] = pca_enhanced[:, 1]
 
-### --- PLOT SIDE-BY-SIDE SCATTERPLOTS ---
-def plot_side_by_side():
-    fig, axes = plt.subplots(1, 2, figsize=(14, 7))
+### --- FUNCTION TO EXTRACT TOP GENRES CONTRIBUTING TO EACH PCA AXIS ---
+def get_top_genres(pca_model, feature_names, axis=0, top_n=5):
+    component = pca_model.components_[axis]
+    abs_component = np.abs(component)
+    top_indices = np.argsort(abs_component)[::-1][:top_n]
+    top_genres = [feature_names[i] for i in top_indices]
+    return top_genres
+
+### --- PLOT SIDE-BY-SIDE SCATTERPLOTS WITH GENRE AXES ---
+def plot_side_by_side(pca_model_orig, pca_model_enh, feature_names):
+    top_pc1_orig = get_top_genres(pca_model_orig, feature_names, axis=0)
+    top_pc2_orig = get_top_genres(pca_model_orig, feature_names, axis=1)
+    top_pc1_enh = get_top_genres(pca_model_enh, feature_names, axis=0)
+    top_pc2_enh = get_top_genres(pca_model_enh, feature_names, axis=1)
+
+    xlabel_orig = f"{', '.join(top_pc1_orig)}"
+    ylabel_orig = f"{', '.join(top_pc2_orig)}"
+    xlabel_enh = f"{', '.join(top_pc1_enh)}"
+    ylabel_enh = f"{', '.join(top_pc2_enh)}"
+
+    fig, axes = plt.subplots(1, 2, figsize=(16, 7))
 
     # Original K-Means Scatterplot
     ax = axes[0]
     for cluster in sorted(user_genre_ratings_original["Cluster_Original"].unique()):
         subset = user_genre_ratings_original[user_genre_ratings_original["Cluster_Original"] == cluster]
         ax.scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
-    ax.set_xlabel('PCA 1')
-    ax.set_ylabel('PCA 2')
-    ax.set_title('Original K-Means - PCA')
+    ax.set_xlabel(xlabel_orig)
+    ax.set_ylabel(ylabel_orig)
+    ax.set_title('Original K-Means')
     ax.legend()
 
     # Enhanced K-Means (with LOF) Scatterplot
@@ -87,33 +103,29 @@ def plot_side_by_side():
     for cluster in sorted(user_genre_ratings_filtered["Cluster_Enhanced"].unique()):
         subset = user_genre_ratings_filtered[user_genre_ratings_filtered["Cluster_Enhanced"] == cluster]
         ax.scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
-    ax.set_xlabel('PCA 1')
-    ax.set_ylabel('PCA 2')
-    ax.set_title('Enhanced K-Means (LOF) - PCA')
+    ax.set_xlabel(xlabel_enh)
+    ax.set_ylabel(ylabel_enh)
+    ax.set_title('Enhanced K-Means (LOF)')
     ax.legend()
 
     plt.tight_layout()
     plt.show()
 
-plot_side_by_side()
+# Plot PCA with genre axis contributions
+plot_side_by_side(pca_original_model, pca_enhanced_model, genres)
 
 ### --- SILHOUETTE SCORES ---
-# Compute silhouette scores for the original and enhanced K-Means
 silhouette_original = silhouette_score(user_genre_ratings_scaled, user_genre_ratings_original["Cluster_Original"])
 silhouette_enhanced = silhouette_score(user_genre_ratings_filtered_scaled, user_genre_ratings_filtered["Cluster_Enhanced"])
 
-# Print silhouette scores
 print(f"Silhouette Score for Original K-Means (Euclidean): {silhouette_original:.4f}")
 print(f"Silhouette Score for Enhanced K-Means (LOF): {silhouette_enhanced:.4f}")
 
 ### --- USER CLUSTERING SUMMARY ---
-# Identify outlier userIds
 outlier_user_ids = user_genre_ratings[outliers_lof == -1].index.tolist()
 
-# Print summary
 print("\nUser Clustering Summary:")
 print("  Total users:", user_genre_ratings.shape[0])
 print("  Inliers after LOF filtering:", user_genre_ratings_filtered.shape[0])
 print("  Outliers removed:", user_genre_ratings.shape[0] - user_genre_ratings_filtered.shape[0])
 print("  Outlier userIds (LOF detected):", outlier_user_ids)
-
