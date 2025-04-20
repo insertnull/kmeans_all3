@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>🎬 Movie Recommendations</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 30px; background-color: #f0f0f0; }
+        .container { background: white; padding: 20px; border-radius: 10px; max-width: 700px; margin: auto; }
+        h1 { color: #4CAF50; }
+        select, button { padding: 10px; margin: 10px 0; width: 100%; }
+        .section { margin-top: 20px; }
+        ul { list-style-type: square; padding-left: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Movie Recommender</h1>
+        <form method="POST">
+            <label for="user_id"><strong>Select User ID:</strong></label>
+            <select name="user_id" id="user_id" required>
+                <option value="">-- Choose a User ID --</option>
+                {% for uid in user_ids %}
+                    <option value="{{ uid }}" {% if result.user_id == uid|string %}selected{% endif %}>{{ uid }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">🎯 Get Recommendations</button>
+        </form>
+
+        {% if result.cluster is not none %}
+        <div class="section">
+            <h3>📍 Cluster: {{ result.cluster }}</h3>
+
+            <div class="section">
+                <h4>📌 Top Rated by User:</h4>
+                <ul>
+                    {% for movie in result.high_rated %}
+                        <li>{{ movie }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <h4>🎥 Recommended Movies:</h4>
+                <ul>
+                    {% for movie in result.recommended %}
+                        <li>{{ movie }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% elif result.user_id %}
+            <p style="color: red;">User {{ result.user_id }} not found in filtered dataset.</p>
+        {% endif %}
+    </div>
+</body>
+</html>
