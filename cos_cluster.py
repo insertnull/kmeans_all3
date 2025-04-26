@@ -69,13 +69,13 @@ print("\n--- User Groupings by Cluster ---")
 print("\nOriginal K-Means (Euclidean):")
 for cluster in sorted(user_genre_ratings["Cluster_Original"].unique()):
     users_in_cluster = user_genre_ratings[user_genre_ratings["Cluster_Original"] == cluster].index.tolist()
-    print(f"Cluster {cluster}: Users {users_in_cluster}")
+    print(f"Cluster {cluster}: Users {users_in_cluster}\n")
 
 # For Custom K-Means (Cosine Similarity)
 print("\nCustom K-Means (Cosine Similarity):")
 for cluster in sorted(user_genre_ratings["Cluster_Cosine"].unique()):
     users_in_cluster = user_genre_ratings[user_genre_ratings["Cluster_Cosine"] == cluster].index.tolist()
-    print(f"Cluster {cluster}: Users {users_in_cluster}")
+    print(f"Cluster {cluster}: Users {users_in_cluster}\n")
 
 ### --- PCA FOR VISUALIZATION ---
 pca = PCA(n_components=2)
