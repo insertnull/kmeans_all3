@@ -93,6 +93,12 @@ def plot_side_by_side(pca_model_orig, pca_model_enh, feature_names):
     for cluster in sorted(user_genre_ratings_original["Cluster_Original"].unique()):
         subset = user_genre_ratings_original[user_genre_ratings_original["Cluster_Original"] == cluster]
         ax.scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
+    
+    # Plot centroids for original clusters (black circles)
+    centroids_orig = kmeans_original.cluster_centers_
+    pca_centroids_orig = pca_original_model.transform(centroids_orig)
+    ax.scatter(pca_centroids_orig[:, 0], pca_centroids_orig[:, 1], color='black', s=100, marker='o', label='Centroids')
+    
     ax.set_xlabel(xlabel_orig)
     ax.set_ylabel(ylabel_orig)
     ax.set_title('Original K-Means')
@@ -103,6 +109,12 @@ def plot_side_by_side(pca_model_orig, pca_model_enh, feature_names):
     for cluster in sorted(user_genre_ratings_filtered["Cluster_Enhanced"].unique()):
         subset = user_genre_ratings_filtered[user_genre_ratings_filtered["Cluster_Enhanced"] == cluster]
         ax.scatter(subset["PCA1"], subset["PCA2"], label=f'Cluster {cluster}', alpha=0.7)
+
+    # Plot centroids for enhanced clusters (black circles)
+    centroids_enhanced = kmeans_enhanced.cluster_centers_
+    pca_centroids_enhanced = pca_enhanced_model.transform(centroids_enhanced)
+    ax.scatter(pca_centroids_enhanced[:, 0], pca_centroids_enhanced[:, 1], color='black', s=100, marker='o', label='Centroids')
+
     ax.set_xlabel(xlabel_enh)
     ax.set_ylabel(ylabel_enh)
     ax.set_title('Enhanced K-Means (LOF)')
@@ -114,11 +126,27 @@ def plot_side_by_side(pca_model_orig, pca_model_enh, feature_names):
 # Plot PCA with genre axis contributions
 plot_side_by_side(pca_original_model, pca_enhanced_model, genres)
 
+### --- PRINT CENTROIDS (after PCA) ---
+# Transform centroids
+centroids_orig = kmeans_original.cluster_centers_
+pca_centroids_orig = pca_original_model.transform(centroids_orig)
+
+centroids_enhanced = kmeans_enhanced.cluster_centers_
+pca_centroids_enhanced = pca_enhanced_model.transform(centroids_enhanced)
+
+print("\nCentroids for Original K-Means (after PCA):")
+for idx, (x, y) in enumerate(pca_centroids_orig):
+    print(f"  Cluster {idx}: PCA1 = {x:.4f}, PCA2 = {y:.4f}")
+
+print("\nCentroids for Enhanced K-Means (after LOF, after PCA):")
+for idx, (x, y) in enumerate(pca_centroids_enhanced):
+    print(f"  Cluster {idx}: PCA1 = {x:.4f}, PCA2 = {y:.4f}")
+
 ### --- SILHOUETTE SCORES ---
 silhouette_original = silhouette_score(user_genre_ratings_scaled, user_genre_ratings_original["Cluster_Original"])
 silhouette_enhanced = silhouette_score(user_genre_ratings_filtered_scaled, user_genre_ratings_filtered["Cluster_Enhanced"])
 
-print(f"Silhouette Score for Original K-Means (Euclidean): {silhouette_original:.4f}")
+print(f"\nSilhouette Score for Original K-Means (Euclidean): {silhouette_original:.4f}")
 print(f"Silhouette Score for Enhanced K-Means (LOF): {silhouette_enhanced:.4f}")
 
 ### --- USER CLUSTERING SUMMARY ---
