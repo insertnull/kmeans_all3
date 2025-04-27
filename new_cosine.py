@@ -59,8 +59,8 @@ user_genre_ratings["Cluster_Cosine"] = clusters_cosine
 silhouette_original = silhouette_score(user_genre_ratings_scaled, clusters_original, metric='euclidean')
 silhouette_cosine = silhouette_score(user_genre_ratings_scaled, clusters_cosine, metric='cosine')
 
-print(f"Silhouette Score (Original K-Means - Euclidean): {silhouette_original}")
-print(f"Silhouette Score (K-Means - Cosine Similarity): {silhouette_cosine}")
+print(f"Silhouette Score (Original K-Means - Euclidean): {silhouette_original:.4f}")
+print(f"Silhouette Score (K-Means - Cosine Similarity): {silhouette_cosine:.4f}")
 
 ### --- PCA FOR VISUALIZATION ---
 pca = PCA(n_components=2)
