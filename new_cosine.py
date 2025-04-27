@@ -62,6 +62,21 @@ silhouette_cosine = silhouette_score(user_genre_ratings_scaled, clusters_cosine,
 print(f"Silhouette Score (Original K-Means - Euclidean): {silhouette_original:.4f}")
 print(f"Silhouette Score (K-Means - Cosine Similarity): {silhouette_cosine:.4f}")
 
+### --- OUTPUT USERS GROUPED BY CLUSTER ---
+print("\n--- User Groupings by Cluster ---")
+
+# For Original K-Means
+print("\nOriginal K-Means (Euclidean):")
+for cluster in sorted(user_genre_ratings["Cluster_Original"].unique()):
+    users_in_cluster = user_genre_ratings[user_genre_ratings["Cluster_Original"] == cluster].index.tolist()
+    print(f"Cluster {cluster}: Users {users_in_cluster}\n")
+
+# For Custom K-Means (Cosine Similarity)
+print("\nCustom K-Means (Cosine Similarity):")
+for cluster in sorted(user_genre_ratings["Cluster_Cosine"].unique()):
+    users_in_cluster = user_genre_ratings[user_genre_ratings["Cluster_Cosine"] == cluster].index.tolist()
+    print(f"Cluster {cluster}: Users {users_in_cluster}\n")
+
 ### --- PCA FOR VISUALIZATION ---
 pca = PCA(n_components=2)
 pca_result = pca.fit_transform(user_genre_ratings_scaled)
