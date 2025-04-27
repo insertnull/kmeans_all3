@@ -134,11 +134,11 @@ pca_centroids_orig = pca_original_model.transform(centroids_orig)
 centroids_enhanced = kmeans_enhanced.cluster_centers_
 pca_centroids_enhanced = pca_enhanced_model.transform(centroids_enhanced)
 
-print("\nCentroids for Original K-Means (after PCA):")
+print("\nCentroids for Original K-Means:")
 for idx, (x, y) in enumerate(pca_centroids_orig):
     print(f"  Cluster {idx}: PCA1 = {x:.4f}, PCA2 = {y:.4f}")
 
-print("\nCentroids for Enhanced K-Means (after LOF, after PCA):")
+print("\nCentroids for Enhanced K-Means with LOF:")
 for idx, (x, y) in enumerate(pca_centroids_enhanced):
     print(f"  Cluster {idx}: PCA1 = {x:.4f}, PCA2 = {y:.4f}")
 
