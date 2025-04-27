@@ -65,10 +65,11 @@ kmeans_manual = KMeans(n_clusters=manual_k, random_state=42, n_init=10)
 clusters_manual = kmeans_manual.fit_predict(user_genre_ratings_scaled)
 user_genre_ratings["Cluster_Original"] = clusters_manual
 
-### --- PCA VISUALIZATION WITH OUTLIER MARKERS --- ###
-def pca_visualization_with_outliers(data_scaled, labels, outliers, title, feature_names):
+### --- PCA VISUALIZATION WITH OUTLIERS AND CENTROIDS --- ###
+def pca_visualization_with_outliers(data_scaled, labels, outliers, centers_scaled, title, feature_names):
     pca = PCA(n_components=2)
     reduced = pca.fit_transform(data_scaled)
+    reduced_centers = pca.transform(centers_scaled)  # transform centroids too
 
     components = pd.DataFrame(pca.components_, columns=feature_names, index=['PC1', 'PC2'])
     top_pc1 = components.loc['PC1'].abs().sort_values(ascending=False).head(5).index.tolist()
@@ -81,9 +82,13 @@ def pca_visualization_with_outliers(data_scaled, labels, outliers, title, featur
     for cluster in np.unique(labels):
         mask = (labels == cluster) & (~outliers)
         plt.scatter(reduced[mask, 0], reduced[mask, 1], label=f'Cluster {cluster}', alpha=0.7)
-    
+
     # Plot outliers
     plt.scatter(reduced[outliers, 0], reduced[outliers, 1], color='red', marker='x', label='Outliers', s=70)
+
+    # Plot centroids as black dots
+    plt.scatter(reduced_centers[:, 0], reduced_centers[:, 1],
+                color='black', marker='o', s=100, label='Centroids')
 
     plt.title(title)
     plt.xlabel(xlabel)
@@ -96,9 +101,10 @@ def pca_visualization_with_outliers(data_scaled, labels, outliers, title, featur
     print("\nGenre Contributions to PCA Components:")
     print(components.T.sort_values(by="PC1", ascending=False))
 
-# Plot with outlier markers
+# Plot with centroid markers
+centers_manual = kmeans_manual.cluster_centers_
 pca_visualization_with_outliers(user_genre_ratings_scaled, clusters_manual, outliers,
-                                 f"K-Means (k={manual_k})", genres)
+                                 centers_manual, f"K-Means (k={manual_k})", genres)
 
 # Silhouette score for evaluation
 sil_score = silhouette_score(user_genre_ratings_scaled, clusters_manual)
